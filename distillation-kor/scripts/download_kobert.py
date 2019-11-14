@@ -7,6 +7,8 @@ import hashlib
 import argparse
 import requests
 
+from transformers import BertConfig, BertModel
+
 
 kobert_models = {
     'pytorch_kobert': {
@@ -21,6 +23,20 @@ kobert_models = {
         'fname': 'kobertvocab_f38b8a4d6d.json',
         'chksum': 'f38b8a4d6d'
     }
+}
+
+kobert_config = {
+    'attention_probs_dropout_prob': 0.1,
+    'hidden_act': 'gelu',
+    'hidden_dropout_prob': 0.1,
+    'hidden_size': 768,
+    'initializer_range': 0.02,
+    'intermediate_size': 3072,
+    'max_position_embeddings': 512,
+    'num_attention_heads': 12,
+    'num_hidden_layers': 12,
+    'type_vocab_size': 2,
+    'vocab_size': 8002
 }
 
 
@@ -101,4 +117,14 @@ if __name__ == '__main__':
     with open(new_vocab_file_huggingface, 'wt', encoding='utf-8') as f:
         f.write('\n'.join(tokens))
     print("Wrote vocab for huggingface's BertTokenizer class.")
+    
+    kobert_model = BertModel(config=BertConfig.from_dict(kobert_config))
+    with open(os.path.join(args.cache_dir, 'kobert-8002-config.json'), 'w') as f:
+        json.dump(kobert_config, f, indent=4)
+    print("Saved KoBERT configurations.")
+
+    pretrained_dir = os.path.join(args.cache_dir, 'pretrained/')
+    os.makedirs(pretrained_dir, exist_ok=True)
+    kobert_model.save_pretrained(save_directory=pretrained_dir)
+    print("Saved KoBERT model using `.save_pretrained.`")
     
