@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 echo "Dumping kowiki data, one sentence per line..."
 python distillation-kor/scripts/dump_sentences_wiki.py \
     --root '.data/wiki-kor-extracted/' \

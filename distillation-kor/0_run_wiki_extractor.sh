@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 echo $SHELL
 echo "Extracting from Korean Wikipedia data..."
 python distillation-kor/scripts/wiki_extractor.py
