@@ -17,6 +17,7 @@ Preprocessing script before distillation.
 """
 
 import time
+import json
 import argparse
 import pickle
 import random
@@ -34,10 +35,11 @@ logger = logging.getLogger(__name__)
 def main():
 
     parser = argparse.ArgumentParser(description="Preprocess the data to avoid re-doing it several times by (tokenization + token_to_ids).")
-    parser.add_argument('--file_path', type=str, default='data/dump.txt', help='The path to the data.')
-    parser.add_argument('--tokenizer_type', type=str, default='bert', choices=['bert', 'roberta', 'gpt2'])
-    parser.add_argument('--tokenizer_name', type=str, default='bert-base-uncased', help="The tokenizer to use.")
-    parser.add_argument('--dump_file', type=str, default='data/dump', help='The dump file prefix.')
+    parser.add_argument('--file_path', type=str, help='The path to the data. Must be in .txt format.')
+    parser.add_argument('--tokenizer_type', type=str, default='bert', choices=['bert', 'roberta', 'gpt2', 'kobert'])
+    parser.add_argument('--tokenizer_name', type=str, default='bert-base-multilingual-cased', help="The tokenizer to use.")
+    parser.add_argument('--dump_file', type=str, help='The dump file prefix.')
+    parser.add_argument('--kobert_tokenizer_configs', type=str, default='.kobert/kobert_tokenizer_configs.json')
 
     args = parser.parse_args()
 
@@ -55,6 +57,15 @@ def main():
         tokenizer = GPT2Tokenizer.from_pretrained(args.tokenizer_name)
         bos = tokenizer.special_tokens_map['bos_token'] # `<|endoftext|>`
         sep = tokenizer.special_tokens_map['eos_token'] # `<|endoftext|>`
+    elif args.tokenizer_type == 'kobert':
+        tokenizer_configs = json.load(open(args.kobert_tokenizer_configs, 'r'))
+        # Method 1.
+        # tokenizer = BertTokenizer.from_pretrained(tokenizer_configs['vocab_file'])
+        # Method 2.
+        tokenizer = BertTokenizer(**tokenizer_configs)
+        tokenizer.max_len = 512
+        bos = tokenizer.special_tokens_map['cls_token'] # `[CLS]`
+        sep = tokenizer.special_tokens_map['sep_token'] # `[SEP]`
 
     logger.info(f'Loading text from {args.file_path}')
     with open(args.file_path, 'r', encoding='utf8') as fp:

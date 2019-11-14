@@ -50,7 +50,7 @@ def main(argv=sys.argv[1:]):
                 else:
                     processed_lines.append(line)
 
-    # Dump file to 'dump_kowiki.txt'
+    # Dump file to 'dump_wiki-kor.txt'
     with open(args.dump_file, mode='w') as f:
         for line in tqdm(processed_lines, desc='Writing'):
             f.write(f"{line}\n")

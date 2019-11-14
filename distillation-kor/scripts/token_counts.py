@@ -12,21 +12,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Preprocessing script before training the distilled model.
 """
+
 from collections import Counter
 import argparse
 import pickle
 import logging
 
-logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-                    datefmt = '%m/%d/%Y %H:%M:%S',
-                    level = logging.INFO)
+
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
+                    datefmt='%m/%d/%Y %H:%M:%S',
+                    level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Token Counts for smoothing the masking probabilities in MLM (cf XLM/word2vec)")
+
+    parser = argparse.ArgumentParser(
+        description="Token Counts for smoothing the masking probabilities in MLM (cf XLM/word2vec)"
+        )
     parser.add_argument("--data_file", type=str, default="data/dump.bert-base-uncased.pickle",
                         help="The binarized dataset.")
     parser.add_argument("--token_counts_dump", type=str, default="data/token_counts.bert-base-uncased.pickle",
@@ -42,7 +49,7 @@ if __name__ == '__main__':
     counter = Counter()
     for tk_ids in data:
         counter.update(tk_ids)
-    counts = [0]*args.vocab_size
+    counts = [0] * args.vocab_size
     for k, v in counter.items():
         counts[k] = v
 

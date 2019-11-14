@@ -12,18 +12,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Preprocessing script before training DistilBERT.
 Specific to BERT -> DistilBERT.
 """
-from transformers import BertForMaskedLM, RobertaForMaskedLM
+
 import torch
 import argparse
+from transformers import BertForMaskedLM, RobertaForMaskedLM
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Extraction some layers of the full BertForMaskedLM or RObertaForMaskedLM for Transfer Learned Distillation")
-    parser.add_argument("--model_type", default="bert", choices=["bert"])
+
+    parser = argparse.ArgumentParser(
+        description="Extraction some layers of the full BertForMaskedLM or RobertaForMaskedLM for Transfer Learned Distillation"
+        )
+    parser.add_argument("--model_type", default="bert", choices=["bert", "kobert"])
     parser.add_argument("--model_name", default='bert-base-uncased', type=str)
+    parser.add_argument("--pretrained_dir", default='.kobert/pretrained/', type=str)
     parser.add_argument("--dump_checkpoint", default='serialization_dir/tf_bert-base-uncased_0247911.pth', type=str)
     parser.add_argument("--vocab_transform", action='store_true')
     args = parser.parse_args()
@@ -32,8 +39,11 @@ if __name__ == '__main__':
     if args.model_type == 'bert':
         model = BertForMaskedLM.from_pretrained(args.model_name)
         prefix = 'bert'
+    elif args.model_type == 'kobert':
+        model = BertForMaskedLM.from_pretrained(args.pretrained_dir)
+        prefix = 'bert'
     else:
-        raise ValueError(f'args.model_type should be "bert".')
+        raise ValueError(f'args.model_type should be "bert" or "kobert".')
 
     state_dict = model.state_dict()
     compressed_sd = {}
