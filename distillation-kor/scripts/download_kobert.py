@@ -10,6 +10,13 @@ import requests
 from transformers import BertConfig, BertModel
 
 
+HUGGINGFACE_VOCAB_FILE = "kobert_vocab_huggingface_format.txt"
+NEW_HUGGINGFACE_VOCAB_FILE = "new_kobert_vocab_huggingface_format.txt"
+KOBERT_CONFIG_FILE = "kobert-8002-config.json"
+DISTILKOBERT_CONFIG_FILE = "distilkobert_student_config.json"
+KOBERT_TOKENIZER_CONFIG_FILE = "kobert_tokenizer_config.json"
+
+
 kobert_models = {
     'pytorch_kobert': {
         'url':
@@ -37,6 +44,42 @@ kobert_config = {
     'num_hidden_layers': 12,
     'type_vocab_size': 2,
     'vocab_size': 8002
+}
+
+distilkobert_config = {
+    "activation": "gelu",
+    "attention_dropout": 0.1,
+    "dim": 768,
+    "dropout": 0.1,
+    "finetuning_task": None,
+    "hidden_dim": 3072,
+    "initializer_range": 0.02,
+    "max_position_embeddings": 512,
+    "n_heads": 12,
+    "n_layers": 6,
+    "num_labels": 2,
+    "output_attentions": False,
+    "output_hidden_states": False,
+    "pruned_heads": {},
+    "qa_dropout": 0.1,
+    "seq_classif_dropout": 0.2,
+    "sinusoidal_pos_embds": False,
+    "tie_weights_": True,
+    "torchscript": False,
+    "vocab_size": 8002
+}
+
+kobert_tokenizer_config = {
+    "vocab_file": None,
+    "do_lower_case": False,
+    "do_basic_tokenize": True,
+    "never_split": None,
+    "unk_token": "[UNK]",
+    "sep_token": "[SEP]",
+    "pad_token": "[PAD]",
+    "cls_token": "[CLS]",
+    "mask_token": "[MASK]",
+    "tokenize_chinese_chars": False
 }
 
 
@@ -78,6 +121,7 @@ if __name__ == '__main__':
     parser.add_argument('--cache_dir', type=str, default='.kobert/')
     args = parser.parse_args()
 
+    # Download model
     model_info = kobert_models['pytorch_kobert']
     model_path = download(
         url=model_info['url'],
@@ -87,6 +131,7 @@ if __name__ == '__main__':
     )
     print(f"Downloaded model to `{model_path}`")
 
+    # Download vocabulary
     vocab_info = kobert_models['vocab']
     vocab_path = download(
         url=vocab_info['url'],
@@ -96,15 +141,17 @@ if __name__ == '__main__':
     )
     print(f"Downloaded vocab to `{vocab_path}`")
 
-    # Preprocess vocabulary file (_ -> ##)
+    # Load vocab
     with open(vocab_path, 'rt') as f:
         vocab = json.load(f)
     print("Loaded vocabulary file.")
 
-    vocab_file_huggingface = os.path.join(args.cache_dir, 'kobert_vocab_huggingface_format.txt')
+    # Save vocab in huggingface format
+    vocab_file_huggingface = os.path.join(args.cache_dir, HUGGINGFACE_VOCAB_FILE)
     with open(vocab_file_huggingface, 'wt', encoding='utf-8') as f:
         f.write('\n'.join(vocab.get('idx_to_token')))
-    
+
+    # Preprocess vocabulary file (_ -> ##)
     tokens = []
     for token in vocab['idx_to_token']:
         if token == '▁':
@@ -113,18 +160,29 @@ if __name__ == '__main__':
             token = token.replace('▁', '##')
             tokens.append(token)
 
-    new_vocab_file_huggingface = os.path.join(args.cache_dir, 'new_kobert_vocab_huggingface_format.txt')
+    # Save new vocab in huggingface format
+    new_vocab_file_huggingface = os.path.join(args.cache_dir, NEW_HUGGINGFACE_VOCAB_FILE)
     with open(new_vocab_file_huggingface, 'wt', encoding='utf-8') as f:
         f.write('\n'.join(tokens))
     print("Wrote vocab for huggingface's BertTokenizer class.")
-    
-    kobert_model = BertModel(config=BertConfig.from_dict(kobert_config))
-    with open(os.path.join(args.cache_dir, 'kobert-8002-config.json'), 'w') as f:
-        json.dump(kobert_config, f, indent=4)
-    print("Saved KoBERT configurations.")
 
+    # Save KoBERT model using `.save_pretrained`
+    kobert_model = BertModel(config=BertConfig.from_dict(kobert_config))
     pretrained_dir = os.path.join(args.cache_dir, 'pretrained/')
     os.makedirs(pretrained_dir, exist_ok=True)
     kobert_model.save_pretrained(save_directory=pretrained_dir)
-    print("Saved KoBERT model using `.save_pretrained.`")
-    
+    print(f"Saved KoBERT model using `.save_pretrained.` to {pretrained_dir}")
+
+    # Save KoBERT configurations
+    with open(os.path.join(args.cache_dir, KOBERT_CONFIG_FILE), 'w') as f:
+        json.dump(kobert_config, f, indent=4)
+    print("Saved KoBERT configurations.")
+
+    # Save DistilKoBERT configurations
+    with open(os.path.join(args.cache_dir, DISTILKOBERT_CONFIG_FILE), 'w') as f:
+        json.dump(distilkobert_config, f, indent=4)
+
+    # Save KoBERT tokenizer configurations
+    kobert_tokenizer_config['vocab_file'] = os.path.join(args.cache_dir, NEW_HUGGINGFACE_VOCAB_FILE)
+    with open(os.path.join(args.cache_dir, KOBERT_TOKENIZER_CONFIG_FILE), 'w') as f:
+        json.dump(kobert_tokenizer_config, f, indent=4)
