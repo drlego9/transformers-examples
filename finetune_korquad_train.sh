@@ -11,7 +11,7 @@ STUDENT_MODEL_TYPE="distilkobert"
 STUDENT_MODEL_DIR="${STUDENT_ROOT}/finetune_inputs/"
 FINETUNE_OUTPUT_DIR="${STUDENT_ROOT}/finetune_outputs/"
 MODEL_CONFIG_PATH="${STUDENT_ROOT}/config.json"
-TOKENIZER_CONFIG_PATH="${TEACHER_ROOT}/kobert_tokenizer_config.json"
+TOKENIZER_VOCAB_PATH="${TEACHER_ROOT}/new_kobert_vocab_huggingface_format.txt"
 TRAIN_FILE=".data/korquad/KorQuAD_v1.0_train.json"
 PREDICT_FILE=".data/korquad/KorQuAD_v1.0_dev.json"
 
@@ -42,7 +42,7 @@ python -m torch.distributed.launch \
         --model_type $STUDENT_MODEL_TYPE \
         --model_name_or_path $STUDENT_MODEL_DIR \
         --config_name $MODEL_CONFIG_PATH \
-        --tokenizer_name $TOKENIZER_CONFIG_PATH \
+        --tokenizer_name $TOKENIZER_VOCAB_PATH \
         --do_train \
         --train_file $TRAIN_FILE \
         --predict_file $PREDICT_FILE \
