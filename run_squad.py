@@ -31,7 +31,7 @@ from torch.utils.data.distributed import DistributedSampler
 
 try:
     from torch.utils.tensorboard import SummaryWriter
-except:
+except ModuleNotFoundError:
     from tensorboardX import SummaryWriter
 
 from tqdm import tqdm, trange
@@ -64,7 +64,9 @@ MODEL_CLASSES = {
     'bert': (BertConfig, BertForQuestionAnswering, BertTokenizer),
     'xlnet': (XLNetConfig, XLNetForQuestionAnswering, XLNetTokenizer),
     'xlm': (XLMConfig, XLMForQuestionAnswering, XLMTokenizer),
-    'distilbert': (DistilBertConfig, DistilBertForQuestionAnswering, DistilBertTokenizer)
+    'distilbert': (DistilBertConfig, DistilBertForQuestionAnswering, DistilBertTokenizer),
+    'kobert': (BertConfig, BertForQuestionAnswering, BertTokenizer),
+    'distilkobert': (DistilBertConfig, DistilBertForQuestionAnswering, DistilBertTokenizer)
 }
 
 def set_seed(args):
@@ -141,11 +143,11 @@ def train(args, train_dataset, model, tokenizer):
                       'attention_mask':  batch[1],
                       'start_positions': batch[3],
                       'end_positions':   batch[4]}
-            if args.model_type != 'distilbert':
+            if args.model_type not in ['distilbert', 'distilkobert']:
                 inputs['token_type_ids'] = None if args.model_type == 'xlm' else batch[2]
             if args.model_type in ['xlnet', 'xlm']:
                 inputs.update({'cls_index': batch[5],
-                               'p_mask':       batch[6]})
+                               'p_mask':    batch[6]})
             outputs = model(**inputs)
             loss = outputs[0]  # model outputs are always tuple in transformers (see doc)
 
@@ -225,7 +227,7 @@ def evaluate(args, model, tokenizer, prefix=""):
             inputs = {'input_ids':      batch[0],
                       'attention_mask': batch[1]
                       }
-            if args.model_type != 'distilbert':
+            if args.model_type not in ['distilbert', 'distilkobert']:
                 inputs['token_type_ids'] = None if args.model_type == 'xlm' else batch[2]  # XLM don't use segment_ids
             example_indices = batch[3]
             if args.model_type in ['xlnet', 'xlm']:
@@ -470,9 +472,27 @@ def main():
 
     args.model_type = args.model_type.lower()
     config_class, model_class, tokenizer_class = MODEL_CLASSES[args.model_type]
-    config = config_class.from_pretrained(args.config_name if args.config_name else args.model_name_or_path)
-    tokenizer = tokenizer_class.from_pretrained(args.tokenizer_name if args.tokenizer_name else args.model_name_or_path, do_lower_case=args.do_lower_case)
-    model = model_class.from_pretrained(args.model_name_or_path, from_tf=bool('.ckpt' in args.model_name_or_path), config=config)
+    if args.model_type in ['kobert', 'distilkobert']:
+        config = config_class.from_pretrained(args.config_name)
+        tokenizer = tokenizer_class.from_pretrained(
+            args.tokenizer_name, 
+            do_lower_case=args.do_lower_case  # Must be False
+            )
+        model = model_class.from_pretrained(
+            args.model_name_or_path,
+            from_tf=bool('.ckpt' in args.model_name_or_path),
+            config=config
+            )
+    else:
+        config = config_class.from_pretrained(args.config_name if args.config_name else args.model_name_or_path)
+        tokenizer = tokenizer_class.from_pretrained(
+            args.tokenizer_name if args.tokenizer_name else args.model_name_or_path,
+            do_lower_case=args.do_lower_case
+            )
+        model = model_class.from_pretrained(
+            args.model_name_or_path,
+            from_tf=bool('.ckpt' in args.model_name_or_path), config=config
+            )
 
     if args.local_rank == 0:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
