@@ -34,6 +34,8 @@ mkdir -p ${STUDENT_MODEL_DIR}
 cp "${STUDENT_ROOT}/model_epoch_${MODEL_NUMBER}.pth" "${STUDENT_MODEL_DIR}/pytorch_model.bin"
 cp "${STUDENT_ROOT}/config.json" "${STUDENT_MODEL_DIR}/config.json"
 
+pkill -f "python -u run_squad.py"
+
 python -m torch.distributed.launch \
     --nproc_per_node=2 \
     run_squad.py \
