@@ -1,4 +1,6 @@
 .data/
+.kobert/
+.distilkobert/
 .vscode/
 .idea/
 .ipynb_checkpoints/
