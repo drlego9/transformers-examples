@@ -5,7 +5,7 @@
 echo "Current Working Directory: ${PWD}"
 
 FINETUNED_MODEL_TYPE="distilkobert"
-FINETUNED_MODEL_DIR="./distilkobert/kobert-8002/finetune_outputs/"
+FINETUNED_MODEL_DIR="./distilkobert/kobert-8002/finetune_outputs"
 FINETUNED_MODEL_CONFIG_PATH="${FINETUNED_MODEL_DIR}/config.json"
 TOKENIZER_VOCAB_PATH="${FINETUNED_MODEL_DIR}/vocab.txt"
 EVALUATION_OUTPUT_DIR="${FINETUNED_MODEL_DIR}/evaluation_outputs/"
