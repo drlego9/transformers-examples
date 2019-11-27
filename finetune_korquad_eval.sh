@@ -8,8 +8,7 @@ FINETUNED_MODEL_TYPE="distilkobert"
 FINETUNED_MODEL_DIR=".distilkobert/kobert-8002/finetune_outputs"
 FINETUNED_MODEL_CONFIG_PATH="${FINETUNED_MODEL_DIR}/config.json"
 TOKENIZER_VOCAB_PATH="${FINETUNED_MODEL_DIR}/vocab.txt"
-EVALUATION_OUTPUT_DIR="${FINETUNED_MODEL_DIR}/evaluation_outputs/"
-mkdir -p ${EVALUATION_OUTPUT_DIR}
+DIRECTORY_OF_CHECKPOINTS="${FINETUNED_MODEL_DIR}"
 
 TRAIN_FILE=".data/korquad/KorQuAD_v1.0_train.json"
 PREDICT_FILE=".data/korquad/KorQuAD_v1.0_dev.json"
@@ -33,6 +32,6 @@ python run_squad.py \
     --predict_file $PREDICT_FILE \
     --max_seq_length $MAX_SEQ_LENGTH \
     --doc_stride $DOC_STRIDE \
-    --output_dir $EVALUATION_OUTPUT_DIR \
+    --output_dir $DIRECTORY_OF_CHECKPOINTS \
     --per_gpu_train_batch_size $PER_GPU_TRAIN_BATCH_SIZE \
-    --per_gpu_eval_batch_size $PER_GPU_EVAL_BATCH_SIZE
+    --per_gpu_eval_batch_size $PER_GPU_EVAL_BATCH_SIZE \
