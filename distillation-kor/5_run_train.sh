@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Distributed training of DistilBERT."
+echo "Distributed training of DistilKoBERT."
 
 export NODE_RANK=0
 export N_NODES=1
